@@ -2,9 +2,10 @@ import { GoogleGenAI } from "@google/genai";
 import { Lead } from "../types";
 
 const getClient = () => {
-    const apiKey = process.env.API_KEY;
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
-        throw new Error("API_KEY is not defined");
+        console.error("VITE_GEMINI_API_KEY is not defined in environment variables");
+        throw new Error("VITE_GEMINI_API_KEY is not defined");
     }
     return new GoogleGenAI({ apiKey });
 };
@@ -37,9 +38,9 @@ export const draftMessage = async (lead: Lead, tone: 'formal' | 'casual' | 'pers
 };
 
 export const analyzeLead = async (lead: Lead, comments: string[]): Promise<string> => {
-  try {
-      const ai = getClient();
-      const prompt = `
+    try {
+        const ai = getClient();
+        const prompt = `
           Analyze the following real estate lead and provide a brief 2-sentence sentiment analysis and a recommended next step.
           
           Lead: ${lead.lead_name} (${lead.service_type} - ${lead.property_type})
@@ -48,14 +49,14 @@ export const analyzeLead = async (lead: Lead, comments: string[]): Promise<strin
           ${comments.length > 0 ? comments.map(c => `- ${c}`).join('\n') : "No comments yet."}
       `;
 
-      const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-      });
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
 
-      return response.text || "Analysis unavailable.";
-  } catch (error) {
-      console.error("Error analyzing lead:", error);
-      return "Error analyzing lead.";
-  }
+        return response.text || "Analysis unavailable.";
+    } catch (error) {
+        console.error("Error analyzing lead:", error);
+        return "Error analyzing lead.";
+    }
 };
